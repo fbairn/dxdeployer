@@ -22,12 +22,12 @@
         const gdiff = await getDiff(fromBranch, toBranch);
         const pack = await differ.packageBuilder.createPackage(gdiff);
         return pack;
-    }
+    };
 
-    Differ.prototype.createFullPackageFromLocal = async (h) => {
+    Differ.prototype.createFullPackageFromLocal = async () => {
         const pack = await differ.packageBuilder.createFullPackage();
         return pack;
-    }
+    };
 
     Differ.prototype.createPackageFromRemote = function (fromBranch, toBranch) {
         return new Promise(function (fulfill, reject) {
@@ -35,9 +35,9 @@
                 .then(getDiff)
                 .then(differ.packageBuilder.createPackage)
                 .then(fulfill)
-                .catch(reject)
+                .catch(reject);
         });
-    }
+    };
 
     Differ.prototype.getTags = function (options) {
         var opts = {};
@@ -56,7 +56,7 @@
                 }
                 tags.all.sort();
                 if (tags.all.length > 0) tags.latest = tags.all[tags.all.length - 1];
-                fulfill(tags)
+                fulfill(tags);
             });
         });
     };
@@ -66,8 +66,8 @@
             differ.simpleGit.addAnnotatedTag(tag, '', (err, d) => {
                 if (err) return reject(err);
                 return fulfill(d);
-            })
-        })
+            });
+        });
     };
 
     var getDiff = function (fromBranch, toBranch) {
@@ -91,13 +91,13 @@
                 .checkout(fromBranch)
                 .pull(function (err, data) {
                     if (err) {
-                        reject(err)
+                        reject(err);
                     } else {
                         fulfill(fromBranch, toBranch, data);
                     }
                 });
         });
-    }
+    };
 
     module.exports = Differ;
 }());

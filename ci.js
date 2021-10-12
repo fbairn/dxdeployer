@@ -42,7 +42,7 @@ if (!fullDeploy && !tag) {
 }
 
 if (!orgUsername) {
-    errorMesg += '-u, --user\t\User is required when doing a deployment.';
+    errorMesg += '-u, --user\t\tUser is required when doing a deployment.';
 }
 
 if (errorMesg != '') {
@@ -52,11 +52,11 @@ if (errorMesg != '') {
 }
 
 if (fullDeploy) {
-    difFunction = differ.createFullPackageFromLocal
+    difFunction = differ.createFullPackageFromLocal;
 } else if (argv.remote) {
-    difFunction = differ.createPackageFromRemote
+    difFunction = differ.createPackageFromRemote;
 } else {
-    difFunction = differ.createPackageFromLocal
+    difFunction = differ.createPackageFromLocal;
 }
 
 var buildDeploy = async () => {
@@ -64,13 +64,13 @@ var buildDeploy = async () => {
     jetpack.remove('temp/');
     jetpack.copy(path + '/force-app', 'temp/force-app', {
         overwrite: true
-    })
+    });
     jetpack.copy(path + '/.forceignore', 'temp/.forceignore', {
         overwrite: true
-    })
+    });
     jetpack.copy(path + '/sfdx-project.json', 'temp/sfdx-project.json', {
         overwrite: true
-    })
+    });
 
     const tagList = await differ.getTags({ match: tag });
     if (tagList.all.length == 0 && !fullDeploy) {
@@ -79,28 +79,28 @@ var buildDeploy = async () => {
     const fileCount = await difFunction(tagList.latest, 'HEAD');
     console.log('File Count:', fileCount);
     return fileCount;
-}
+};
 
-var completeDeployment = async function () {
-    var tagTimeStamp = formatDate(new Date());
-    differ.setTags(tag + '-' + tagTimeStamp);
-}
+// var completeDeployment = async function () {
+//     var tagTimeStamp = formatDate(new Date());
+//     differ.setTags(tag + '-' + tagTimeStamp);
+// };
 
-function formatDate(date) {
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var month = date.getMonth() + 1;
-    var day = date.getDate();
-    var year = date.getFullYear() - 2000;
+// function formatDate(date) {
+//     var hours = date.getHours();
+//     var minutes = date.getMinutes();
+//     var month = date.getMonth() + 1;
+//     var day = date.getDate();
+//     var year = date.getFullYear() - 2000;
 
-    hours = hours % 12;
-    hours = hours < 10 ? '0' + hours : hours;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    day = day < 10 ? '0' + day : day;
-    month = month < 10 ? '0' + month : month;
-    var strTime = hours + '' + minutes;
-    return year + month + day + strTime;
-}
+//     hours = hours % 12;
+//     hours = hours < 10 ? '0' + hours : hours;
+//     minutes = minutes < 10 ? '0' + minutes : minutes;
+//     day = day < 10 ? '0' + day : day;
+//     month = month < 10 ? '0' + month : month;
+//     var strTime = hours + '' + minutes;
+//     return year + month + day + strTime;
+// }
 
 console.log('Deploy');
 const rundeploy = async () => {
@@ -121,7 +121,7 @@ const rundeploy = async () => {
     jetpack.remove('temp/');
     console.log('Exiting ');
     process.exit(0);
-}
+};
 rundeploy();
 
 function wait() {

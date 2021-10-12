@@ -1,5 +1,4 @@
 var exec = require('child_process');
-const { stat } = require('fs');
 
 var deployMetadata = function ({
     orgUsername,
@@ -34,7 +33,7 @@ var deployMetadata = function ({
             }
             if (execData.status == 0) {
                 //success
-                setTimeout(() => checkData(orgUsername, execData.result.id, resolve, reject), 30000)
+                setTimeout(() => checkData(orgUsername, execData.result.id, resolve, reject), 30000);
             } else {
                 //Error
                 console.error('Failure ', err);
@@ -43,9 +42,9 @@ var deployMetadata = function ({
             // console.info('Deployment Complete');
             // return resolve();
 
-        })
-    })
-}
+        });
+    });
+};
 
 const checkData = (orgUsername, id, resolve, reject) => {
     const checkCommand = 'sfdx force:mdapi:deploy:report -u ' + orgUsername + ' -i ' + id + ' --json ';
@@ -64,7 +63,7 @@ const checkData = (orgUsername, id, resolve, reject) => {
                 return resolve();
             } else {
                 console.info(`Deployment ${result.status}\tTests Completed: ${result.numberTestsCompleted}\tTest Errors: ${result.numberTestErrors}\tTotal Tests: ${result.numberTestsTotal}`);
-                setTimeout(() => checkData(orgUsername, result.id, resolve, reject), 10000)
+                setTimeout(() => checkData(orgUsername, result.id, resolve, reject), 10000);
             }
         } else {
             //Error
@@ -84,8 +83,8 @@ const checkData = (orgUsername, id, resolve, reject) => {
             console.error(`Failure\t${message}`);
             return reject(`Failure\t${message}`);
         }
-    })
-}
+    });
+};
 
 module.exports = {
     deployMetadata,

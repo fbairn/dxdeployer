@@ -2,66 +2,66 @@ let jetpack = require('fs-jetpack');
 
 const deployData = [
     {
-        "section": "ApexClass",
-        "directory": "classes"
+        'section': 'ApexClass',
+        'directory': 'classes'
     },
     {
-        "section": "AuraDefinitionBundle",
-        "directory": "aura"
+        'section': 'AuraDefinitionBundle',
+        'directory': 'aura'
     },
     {
-        "section": "LightningComponentBundle",
-        "directory": "lwc"
+        'section': 'LightningComponentBundle',
+        'directory': 'lwc'
     },
     {
-        "section": "ApexComponent",
-        "directory": "components"
+        'section': 'ApexComponent',
+        'directory': 'components'
     },
     {
-        "section": "ApexTrigger",
-        "directory": "triggers"
+        'section': 'ApexTrigger',
+        'directory': 'triggers'
     },
     {
-        "section": "ApexPage",
-        "directory": "pages"
+        'section': 'ApexPage',
+        'directory': 'pages'
     },
     {
-        "section": "StaticResource",
-        "directory": "staticresources"
+        'section': 'StaticResource',
+        'directory': 'staticresources'
     },
     {
-        "section": "Flow",
-        "directory": "flows"
+        'section': 'Flow',
+        'directory': 'flows'
     },
     {
-        "section": "FlexiPage",
-        "directory": "flexipages"
+        'section': 'FlexiPage',
+        'directory': 'flexipages'
     },
     {
-        "section": "Layout",
-        "directory": "layouts"
+        'section': 'Layout',
+        'directory': 'layouts'
     },
     {
-        "section": "CustomObject",
-        "directory": "objects"
+        'section': 'CustomObject',
+        'directory': 'objects'
     },
     {
-        "section": "CustomMetadata",
-        "directory": "customMetadata"
+        'section': 'CustomMetadata',
+        'directory': 'customMetadata'
     },
     {
-        "section": "Workflow",
-        "directory": "workflows"
+        'section': 'Workflow',
+        'directory': 'workflows'
     },
     {
-        "section": "EmailTemplate",
-        "directory": "email"
+        'section': 'EmailTemplate',
+        'directory': 'email'
     },
     {
-        "section": "QuickAction",
-        "directory": "quickActions"
+        'section': 'QuickAction',
+        'directory': 'quickActions'
     },
-]
+];
 
 let sortFiles = function (gitDifData) {
     const files = gitDifData.files;
@@ -77,9 +77,9 @@ let sortFiles = function (gitDifData) {
             sortedFiles['Flow'] = {
                 sectionName: 'Flow',
                 files: files.filter(function (it) {
-                    return it.file.endsWith('flow-meta.xml')
+                    return it.file.endsWith('flow-meta.xml');
                 })
-            }
+            };
             sortedFiles.count += sortedFiles['Flow'].files.length;
             console.log('Flow', sortedFiles['Flow'].files);
 
@@ -94,7 +94,7 @@ let sortFiles = function (gitDifData) {
 
             fulfill(sortedFiles);
         } catch (error) {
-            reject(error)
+            reject(error);
         }
     });
 };
@@ -107,16 +107,16 @@ const findMatchingFiles = function (files, sectionName, filePath) {
     });
 
     return sectionData;
-}
+};
 
 const sortLightning = function (auraFiles) {
     let found = [];
     let removedDups = auraFiles.filter(function (it) {
         let file = it.file;
-        let fileName = file.substring(file.indexOf('/') + 1, file.lastIndexOf('/'))
+        let fileName = file.substring(file.indexOf('/') + 1, file.lastIndexOf('/'));
         if (!found.includes(fileName)) {
             found.push(fileName);
-            it.file = '/' + fileName + '.cmp'
+            it.file = '/' + fileName + '.cmp';
             return true;
         } else {
             return false;
@@ -124,73 +124,73 @@ const sortLightning = function (auraFiles) {
     });
 
     return removedDups;
-}
+};
 
 const buildXML = function (changeData) {
     return new Promise(function (fulfill, reject) {
         try {
-            let header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Package xmlns=\"http://soap.sforce.com/2006/04/metadata\">\n"
+            let header = '<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n';
 
-            let output = header
+            let output = header;
             for (const key in changeData) {
-                if (key != 'count' && changeData.hasOwnProperty(key)) {
-                    output += getSectionData(changeData[key])
+                if (key != 'count' && changeData[key]) {
+                    output += getSectionData(changeData[key]);
                 }
             }
 
-            output = output + "    <version>52.0</version>\n</Package>"
+            output = output + '    <version>52.0</version>\n</Package>';
             console.log(output);
             fulfill(output);
         } catch (error) {
             reject(error);
         }
-    })
-}
+    });
+};
 
 const buildFullXML = function () {
     return new Promise(function (fulfill, reject) {
         try {
-            let header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Package xmlns=\"http://soap.sforce.com/2006/04/metadata\">\n"
+            let header = '<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n';
 
-            let output = header
+            let output = header;
 
 
             for (let index = 0; index < deployData.length; index++) {
                 const element = deployData[index];
 
                 let section = '    <types>\n';
-                section += '        <members>*</members>\n'
-                section += '        <name>' + element.section + '</name>\n'
-                section += '    </types>\n'
+                section += '        <members>*</members>\n';
+                section += '        <name>' + element.section + '</name>\n';
+                section += '    </types>\n';
                 output += section;
             }
 
-            output = output + "    <version>52.0</version>\n</Package>"
+            output = output + '    <version>52.0</version>\n</Package>';
             fulfill(output);
         } catch (error) {
             reject(error);
         }
-    })
-}
+    });
+};
 
 
 const getSectionData = function (sectionData) {
     if (sectionData.files.length == 0) return '';
     let section = '    <types>\n';
     sectionData.files.forEach(element => {
-        let fileName = element.file.substring(element.file.lastIndexOf('/') + 1, element.file.indexOf('.'))
-        section += '        <members>' + fileName + '</members>\n'
+        let fileName = element.file.substring(element.file.lastIndexOf('/') + 1, element.file.indexOf('.'));
+        section += '        <members>' + fileName + '</members>\n';
     });
-    section += '        <name>' + sectionData.sectionName + '</name>\n'
-    section += '    </types>\n'
+    section += '        <name>' + sectionData.sectionName + '</name>\n';
+    section += '    </types>\n';
     return section;
-}
+};
 
 const writePackageXML = function (packageData) {
     return new Promise(function (fulfill, reject) {
         jetpack.writeAsync('temp/package.xml', packageData).then(fulfill).catch(reject);
     });
-}
+};
 
 const createPackage = async (gitDifData) => {
     const sortedFiles = await sortFiles(gitDifData);
@@ -199,13 +199,13 @@ const createPackage = async (gitDifData) => {
     const xml = await buildXML(sortedFiles);
     await writePackageXML(xml);
     return sortedFiles.count;
-}
+};
 
 const createFullPackage = async () => {
     const xml = await buildFullXML();
     await writePackageXML(xml);
     return 'ALL FILES';
-}
+};
 
 module.exports = {
     createPackage,
