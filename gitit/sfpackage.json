@@ -1,0 +1,42 @@
+[
+    {
+      "section": "ApexClass",
+      "directory": "classes"
+    },
+    {
+      "section": "AuraDefinitionBundle",
+      "directory": "aura"
+    },
+    {
+      "section": "ApexComponent",
+      "directory": "components"
+    },
+    {
+      "section": "ApexTrigger",
+      "directory": "triggers"
+    },
+    {
+      "section": "ApexPage",
+      "directory": "pages"
+    },
+    {
+      "section": "StaticResource",
+      "directory": "staticresources"
+    },
+    {
+      "section": "CustomObject",
+      "directory": "objects"
+    },
+    {
+      "section": "CustomMetadata",
+      "directory": "customMetadata"
+    },
+    {
+      "section": "Workflow",
+      "directory": "workflows"
+    },
+    {
+      "section": "EmailTemplate",
+      "directory": "email"
+    }
+  ]
