@@ -12,6 +12,7 @@ if (argv.h || argv.help) {
     console.log('-c, --check\t\tCheck validation without deploying');
     console.log('-f, --full\t\tFull deployment of metadata');
     console.log('-l, --testlevel\t\tDeployment testing level');
+    console.log('-v, --validated\t\tDeploy previously validated metadata');
     console.log('\t\t\t(NoTestRun,RunSpecifiedTests,RunLocalTests,RunAllTestsInOrg,Manifest)');
     console.log('\t\t\tManifest will run any Apex classes that have Test in the name');
 
@@ -27,6 +28,7 @@ const orgUsername = argv.u || argv.username;
 let tests = argv.r || argv.runtests;
 let testLevel = argv.l || argv.testlevel;
 const check = argv.c || argv.check || false;
+const validated = argv.v || argv.validated || false;
 
 const gitter = require('./src/gitit')(path);
 
@@ -86,20 +88,24 @@ console.log('Deploy');
 const rundeploy = async () => {
     try {
         buildDeploy();
+        if (validated) {
+            await dx.deployValidated({ orgUsername });
+        } else {
 
-        if (testLevel == 'Manifest') {
-            testLevel = 'RunSpecifiedTests';
-            const packdata = await readPackage();
-            const classes = packdata.Package.types.find(t => t.name.includes('ApexClass'));
-            const testClasses = classes.members.filter(t => t.toLowerCase().includes('test'));
-            if (testClasses.length > 0) {
-                tests = testClasses.join(',');
-            } else {
-                testLevel = 'NoTestRun';
-                tests = '';
+            if (testLevel == 'Manifest') {
+                testLevel = 'RunSpecifiedTests';
+                const packdata = await readPackage();
+                const classes = packdata.Package.types.find(t => t.name.includes('ApexClass'));
+                const testClasses = classes.members.filter(t => t.toLowerCase().includes('test'));
+                if (testClasses.length > 0) {
+                    tests = testClasses.join(',');
+                } else {
+                    testLevel = 'NoTestRun';
+                    tests = '';
+                }
             }
+            await dx.deployMetadata({ orgUsername, testLevel, tests, check });
         }
-        await dx.deployMetadata({ orgUsername, testLevel, tests, check });
         console.log(tag);
         if (tag) await completeDeployment();
     } catch (error) {

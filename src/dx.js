@@ -1,13 +1,14 @@
-var exec = require('child_process');
+const fs = require('fs');
+const exec = require('child_process');
 
-var deployMetadata = function ({
+const deployMetadata = function ({
     orgUsername,
     testLevel,
     tests,
     check
 }) {
     return new Promise(function (resolve, reject) {
-        var testString = '';
+        let testString = '';
         if (tests) {
             testString = ' -r ';
             if (tests.isArray) {
@@ -16,10 +17,10 @@ var deployMetadata = function ({
                 testString += tests;
             }
         }
-        var level = testLevel ? ' -l ' + testLevel : '';
-        var checkString = check ? ' -c ' : '';
+        const level = testLevel ? ' -l ' + testLevel : '';
+        const checkString = check ? ' -c ' : '';
 
-        var deployCommand = 'cd ./temp && sfdx force:source:deploy -x ./package.xml -u ' + orgUsername + ' -w 0 --json ' + level + testString + checkString;
+        const deployCommand = 'cd ./temp && sfdx force:source:deploy -x ./package.xml -u ' + orgUsername + ' -w 0 --json ' + level + testString + checkString;
         console.log(deployCommand);
 
         //sfdx force:mdapi:deploy:report
@@ -32,8 +33,51 @@ var deployMetadata = function ({
                 return reject(execData.name);
             }
             if (execData.status == 0) {
+                fs.writeFileSync('./depolydata.json', JSON.stringify(execData, null, 2));
                 //success
                 setTimeout(() => checkData(orgUsername, execData.result.id, resolve, reject), 30000);
+            } else {
+                //Error
+                console.error('Failure ', err);
+                return reject(err);
+            }
+            // console.info('Deployment Complete');
+            // return resolve();
+
+        });
+    });
+};
+
+const deployValidated = function ({
+    orgUsername
+}) {
+    return new Promise(function (resolve, reject) {
+        const jsonD = fs.readFileSync('./depolydata.json', 'utf8');
+        console.log(jsonD);
+        const prevDeployment = JSON.parse(jsonD);
+        console.log(prevDeployment);
+        const deployCommand = `cd ./temp && sfdx force:source:deploy -q ${prevDeployment.result.id} --json -u ${orgUsername}`;
+        console.log(deployCommand);
+
+        exec.exec(deployCommand, function (err, data) {
+            console.log('Deploy validated', data);
+            const execData = JSON.parse(data);
+            const { status, result } = JSON.parse(data);
+            if (err) {
+                console.error(err);
+                return reject(execData.name & ' ' + execData.message);
+            }
+            if (status == 0) {
+                //success
+                if (result.done) {
+                    console.info('Deployment Result: ' + result.status);
+                    if (result.status != 'Succeeded') {
+                        return reject(result.status);
+                    }
+                    return resolve();
+                } else {
+                    setTimeout(() => checkData(orgUsername, execData.result.id, resolve, reject), 30000);
+                }
             } else {
                 //Error
                 console.error('Failure ', err);
@@ -88,5 +132,6 @@ const checkData = (orgUsername, id, resolve, reject) => {
 
 module.exports = {
     deployMetadata,
+    deployValidated,
     checkData
 };
