@@ -53,9 +53,7 @@ const deployValidated = function ({
 }) {
     return new Promise(function (resolve, reject) {
         const jsonD = fs.readFileSync('./depolydata.json', 'utf8');
-        console.log(jsonD);
         const prevDeployment = JSON.parse(jsonD);
-        console.log(prevDeployment);
         const deployCommand = `cd ./temp && sfdx force:source:deploy -q ${prevDeployment.result.id} --json -u ${orgUsername}`;
         console.log(deployCommand);
 

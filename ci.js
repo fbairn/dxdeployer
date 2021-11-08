@@ -115,7 +115,6 @@ const rundeploy = async () => {
             }
             await dx.deployMetadata({ orgUsername, testLevel, tests, check });
         }
-        console.log(tag);
         if (tag) await completeDeployment();
     } catch (error) {
         jetpack.remove('temp/');
