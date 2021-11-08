@@ -96,12 +96,21 @@ const rundeploy = async () => {
                 testLevel = 'RunSpecifiedTests';
                 const packdata = await readPackage();
                 const classes = packdata.Package.types.find(t => t.name.includes('ApexClass'));
-                const testClasses = classes.members.filter(t => t.toLowerCase().includes('test'));
-                if (testClasses.length > 0) {
-                    tests = testClasses.join(',');
+                if (!classes || !classes.members || classes.members.length == 0) {
+                    if (process.env.DEFAULT_TEST) {
+                        tests = process.env.DEFAULT_TEST;
+                    } else {
+                        testLevel = 'NoTestRun';
+                        tests = '';
+                    }
                 } else {
-                    testLevel = 'NoTestRun';
-                    tests = '';
+                    const testClasses = classes.members.filter(t => t.toLowerCase().includes('test'));
+                    if (testClasses.length > 0) {
+                        tests = testClasses.join(',');
+                    } else {
+                        testLevel = 'NoTestRun';
+                        tests = '';
+                    }
                 }
             }
             await dx.deployMetadata({ orgUsername, testLevel, tests, check });
