@@ -93,13 +93,17 @@ const rundeploy = async () => {
         } else {
 
             if (testLevel == 'Manifest') {
+                console.log('Tests in Manifest');
                 testLevel = 'RunSpecifiedTests';
                 const packdata = await readPackage();
                 const classes = packdata.Package.types.find(t => t.name.includes('ApexClass'));
                 if (!classes || !classes.members || classes.members.length == 0) {
+                    console.log('No Apex Classes Found');
                     if (process.env.DEFAULT_TEST) {
+                        console.log('A: Using Default Test', process.env.DEFAULT_TEST);
                         tests = process.env.DEFAULT_TEST;
                     } else {
+                        console.log('A: Falling back to no test run');
                         testLevel = 'NoTestRun';
                         tests = '';
                     }
@@ -107,11 +111,18 @@ const rundeploy = async () => {
                     const testClasses = classes.members.filter(t => t.toLowerCase().includes('test'));
                     if (testClasses.length > 0) {
                         tests = testClasses.join(',');
+                        console.log('Tests found', tests);
+                    } else if (process.env.DEFAULT_TEST) {
+                        console.log('A: Using Default Test', process.env.DEFAULT_TEST);
+                        tests = process.env.DEFAULT_TEST;
                     } else {
+                        console.log('B: Falling back to no test run');
                         testLevel = 'NoTestRun';
                         tests = '';
                     }
                 }
+            } else {
+                console.log('No Test Level Specified');
             }
             await dx.deployMetadata({ orgUsername, testLevel, tests, check });
         }

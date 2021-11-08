@@ -1,6 +1,5 @@
-docker build -t fbairn/dxci:210913.B -t fbairn/dxci:latest .
+docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:package-a .
 
-docker push fbairn/dxci:210913.B && docker push fbairn/dxci:latest
-
-
-docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:package-b .
+docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211108-amber .
+docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211108-baryte .
+docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211108-cobalt .
