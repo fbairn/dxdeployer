@@ -27,7 +27,7 @@ const deployMetadata = function ({
 
         exec.exec(deployCommand, function (err, data) {
             console.log('Deploy request', data);
-            fs.writeFileSync('deploydata.json', data);
+            fs.writeFileSync('temp/deploydata.json', data);
             const execData = JSON.parse(data);
             if (err) {
                 console.error(err);
@@ -52,7 +52,7 @@ const deployValidated = function ({
     orgUsername
 }) {
     return new Promise(function (resolve, reject) {
-        const jsonD = fs.readFileSync('deploydata.json', 'utf8');
+        const jsonD = fs.readFileSync('temp/deploydata.json', 'utf8');
         const prevDeployment = JSON.parse(jsonD);
         const deployCommand = `cd ./temp && sfdx force:source:deploy -q ${prevDeployment.result.id} --json -u ${orgUsername}`;
         console.log(deployCommand);

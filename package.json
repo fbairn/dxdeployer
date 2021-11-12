@@ -4,7 +4,7 @@
   "description": "",
   "main": "ci.js",
   "scripts": {
-    "test": "DEFAULT_TEST=test node ci.js -u prop360 -l Manifest -c -d /Users/fredrickbairn/Documents/SFProjects/prop360"
+    "test": "DEFAULT_TEST=test node ci.js -u prop360 -l Manifest -c -d /Users/fredrickbairn/Documents/SFProjects/prop360 --bypass"
   },
   "author": "Fredrick Bairn",
   "license": "ISC",

@@ -1,3 +1,5 @@
+console.log('Deploy Version 20211112-cobalt-d');
+const fs = require('fs');
 const { readPackage } = require('./src/packger');
 
 const dx = require('./src/dx'),
@@ -22,17 +24,18 @@ if (argv.h || argv.help) {
 }
 
 var errorMesg = '';
-const path = argv.d || argv.deploydir || './';
-const tag = argv.t || argv.tag;
-const orgUsername = argv.u || argv.username;
+const PATH = argv.d || argv.deploydir || './';
+const TAG = argv.t || argv.tag;
+const ORG_USERNAME = argv.u || argv.username;
 let tests = argv.r || argv.runtests;
 let testLevel = argv.l || argv.testlevel;
-const check = argv.c || argv.check || false;
-const validated = argv.v || argv.validated || false;
+const CHECK = argv.c || argv.check || false;
+const VALIDATED = argv.v || argv.validated || false;
+const BYPASS = argv.bypass || false;
 
-const gitter = require('./src/gitit')(path);
+const gitter = require('./src/gitit')(PATH);
 
-if (!orgUsername) {
+if (!ORG_USERNAME) {
     errorMesg += '-u, --user\tUser is required when doing a deployment.';
 }
 
@@ -45,26 +48,26 @@ if (errorMesg != '') {
 var buildDeploy = () => {
 
     jetpack.remove('temp/');
-    jetpack.copy(path + '/force-app', 'temp/force-app', {
+    jetpack.copy(PATH + '/force-app', 'temp/force-app', {
         overwrite: true
     });
-    jetpack.copy(path + '/.forceignore', 'temp/.forceignore', {
+    jetpack.copy(PATH + '/.forceignore', 'temp/.forceignore', {
         overwrite: true
     });
-    jetpack.copy(path + '/sfdx-project.json', 'temp/sfdx-project.json', {
+    jetpack.copy(PATH + '/sfdx-project.json', 'temp/sfdx-project.json', {
         overwrite: true
     });
-    jetpack.copy(path + '/sfdx-project.json', 'temp/sfdx-project.json', {
+    jetpack.copy(PATH + '/sfdx-project.json', 'temp/sfdx-project.json', {
         overwrite: true
     });
-    jetpack.copy(path + '/manifest/package.xml', 'temp/package.xml', {
+    jetpack.copy(PATH + '/manifest/package.xml', 'temp/package.xml', {
         overwrite: true
     });
 };
 
 var completeDeployment = async function () {
     var tagTimeStamp = formatDate(new Date());
-    gitter.setTags(tag + '-' + tagTimeStamp);
+    gitter.setTags(TAG + '-' + tagTimeStamp);
 };
 
 function formatDate(date) {
@@ -84,14 +87,14 @@ function formatDate(date) {
     return `${year}${month}${day}-${strTime}`;
 }
 
-console.log('Deploy');
 const rundeploy = async () => {
     try {
         buildDeploy();
-        if (validated) {
-            await dx.deployValidated({ orgUsername });
+        if (VALIDATED) {
+            await dx.deployValidated({ orgUsername: ORG_USERNAME });
+        } else if (BYPASS) {
+            fs.writeFileSync('temp/deploydata.json', '{ "bypass": true }');
         } else {
-
             if (testLevel == 'Manifest') {
                 console.log('Tests in Manifest');
                 testLevel = 'RunSpecifiedTests';
@@ -124,15 +127,13 @@ const rundeploy = async () => {
             } else {
                 console.log('No Test Level Specified');
             }
-            await dx.deployMetadata({ orgUsername, testLevel, tests, check });
+            await dx.deployMetadata({ orgUsername: ORG_USERNAME, testLevel, tests, check: CHECK });
         }
-        if (tag) await completeDeployment();
+        if (TAG) await completeDeployment();
     } catch (error) {
-        jetpack.remove('temp/');
         console.error('Error deploying', error);
         process.exit(1);
     }
-    jetpack.remove('temp/');
     console.log('Exiting ');
     process.exit(0);
 };
