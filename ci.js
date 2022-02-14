@@ -1,4 +1,4 @@
-console.log('Deploy Version 20211112-cobalt-d');
+console.log('Deploy Version 20220214-emerald-c');
 const fs = require('fs');
 const { readPackage } = require('./src/packger');
 
@@ -8,11 +8,11 @@ const dx = require('./src/dx'),
 
 if (argv.h || argv.help) {
     console.log('DX CI Help');
-    console.log('-t, --tag\t\tTag for partial deployment & complete. IE: qa');
+    console.log('-t, --target\t\tTarget branch for deployment');
     console.log('-d, --deploydir\t\tDirectory of the DX project');
     console.log('-u, --username\t\tUsername or alias for the target org.');
     console.log('-c, --check\t\tCheck validation without deploying');
-    console.log('-f, --full\t\tFull deployment of metadata');
+    console.log('-p, --package\t\tDeployment metadata based off included Package.xml');
     console.log('-l, --testlevel\t\tDeployment testing level');
     console.log('-v, --validated\t\tDeploy previously validated metadata');
     console.log('\t\t\t(NoTestRun,RunSpecifiedTests,RunLocalTests,RunAllTestsInOrg,Manifest)');
@@ -25,18 +25,21 @@ if (argv.h || argv.help) {
 
 var errorMesg = '';
 const PATH = argv.d || argv.deploydir || './';
-const TAG = argv.t || argv.tag;
+const TARGET = argv.t || argv.target;
 const ORG_USERNAME = argv.u || argv.username;
 let tests = argv.r || argv.runtests;
 let testLevel = argv.l || argv.testlevel;
 const CHECK = argv.c || argv.check || false;
 const VALIDATED = argv.v || argv.validated || false;
 const BYPASS = argv.bypass || false;
-
-const gitter = require('./src/gitit')(PATH);
+const PACKAGE_DEPLOY = argv.p || argv.package || false;
 
 if (!ORG_USERNAME) {
     errorMesg += '-u, --user\tUser is required when doing a deployment.';
+}
+
+if (!PACKAGE_DEPLOY && !TARGET) {
+    errorMesg += '-t, --Target\tTarget branch is required when doing a deployment.';
 }
 
 if (errorMesg != '') {
@@ -45,12 +48,12 @@ if (errorMesg != '') {
     process.exit(1);
 }
 
-var buildDeploy = () => {
+const gitter = require('./src/gitit')(PATH);
+
+var buildDeploy = async () => {
 
     jetpack.remove('temp/');
-    jetpack.copy(PATH + '/force-app', 'temp/force-app', {
-        overwrite: true
-    });
+
     jetpack.copy(PATH + '/.forceignore', 'temp/.forceignore', {
         overwrite: true
     });
@@ -60,36 +63,65 @@ var buildDeploy = () => {
     jetpack.copy(PATH + '/sfdx-project.json', 'temp/sfdx-project.json', {
         overwrite: true
     });
-    jetpack.copy(PATH + '/manifest/package.xml', 'temp/package.xml', {
-        overwrite: true
-    });
+
+    if (PACKAGE_DEPLOY) {
+        jetpack.copy(PATH + '/force-app', 'temp/force-app', {
+            overwrite: true
+        });
+
+        jetpack.copy(PATH + '/manifest/package.xml', 'temp/package.xml', {
+            overwrite: true
+        });
+        return 'PACKAGE';
+    } else {
+        jetpack.copy(PATH + '/force-app', 'temp/force-holder', {
+            overwrite: true
+        });
+
+        let target = TARGET;
+        if(target.includes('origin/')==false){
+            const tagList = await gitter.getTags({ match: TARGET });
+            if (tagList.all.length == 0) {
+                throw 'The tag ' + TARGET + ' was not found.';
+            }
+            target=tagList.latest;
+        }
+
+        const fileCount = await gitter.createPackageFromLocal(target, 'HEAD');
+        console.log('File Count:', fileCount);
+        return fileCount;
+    }
 };
 
-var completeDeployment = async function () {
-    var tagTimeStamp = formatDate(new Date());
-    gitter.setTags(TAG + '-' + tagTimeStamp);
-};
+// var tagDeployment = async function () {
+//     var tagTimeStamp = formatDate(new Date());
+//     gitter.setTags(TARGET + '-' + tagTimeStamp);
+// };
 
-function formatDate(date) {
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-    let month = date.getMonth() + 1;
-    let day = date.getDate();
-    const year = date.getFullYear() - 2000;
+// function formatDate(date) {
+//     let hours = date.getHours();
+//     let minutes = date.getMinutes();
+//     let month = date.getMonth() + 1;
+//     let day = date.getDate();
+//     const year = date.getFullYear() - 2000;
 
-    // hours = hours % 12;
-    hours = hours < 10 ? '0' + hours : hours;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    day = day < 10 ? '0' + day : day;
-    month = month < 10 ? '0' + month : month;
-    const strTime = hours + '' + minutes;
-    console.log(`${year}${month}${day}-${strTime}`);
-    return `${year}${month}${day}-${strTime}`;
-}
+//     // hours = hours % 12;
+//     hours = hours < 10 ? '0' + hours : hours;
+//     minutes = minutes < 10 ? '0' + minutes : minutes;
+//     day = day < 10 ? '0' + day : day;
+//     month = month < 10 ? '0' + month : month;
+//     const strTime = hours + '' + minutes;
+//     console.log(`${year}${month}${day}-${strTime}`);
+//     return `${year}${month}${day}-${strTime}`;
+// }
 
 const rundeploy = async () => {
     try {
-        buildDeploy();
+        const fileCount = await buildDeploy();
+        if (fileCount == 0) {
+            console.error('No files changed.');
+            process.exit(1);
+        }
         if (VALIDATED) {
             await dx.deployValidated({ orgUsername: ORG_USERNAME });
         } else if (BYPASS) {
@@ -129,7 +161,7 @@ const rundeploy = async () => {
             }
             await dx.deployMetadata({ orgUsername: ORG_USERNAME, testLevel, tests, check: CHECK });
         }
-        if (TAG) await completeDeployment();
+        // if (fileCount && TARGET) await tagDeployment();
     } catch (error) {
         console.error('Error deploying', error);
         process.exit(1);

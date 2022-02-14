@@ -1,5 +1,9 @@
+const { filterMetaFiles } = require('./copier');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
 (function () {
-    var differ;
+    let differ;
 
     function Differ(baseDir) {
         this._baseDir = '';
@@ -15,6 +19,19 @@
 
         differ = this;
     }
+
+    Differ.prototype.createPackageFromLocal = async (fromBranch, toBranch) => {
+        const gdiff = await getDiff(fromBranch, toBranch);
+        console.log('gdiff', gdiff);
+        if (gdiff.files.length === 0) return 0;
+
+        await filterMetaFiles(gdiff);
+        console.log('A', await exec('ls'));
+        console.log('B', await exec('cd ./temp && ls'));
+        await exec('cd ./temp && sfdx force:source:manifest:create --sourcepath ./force-app --manifestname ./package');
+        return gdiff.files.length;
+    };
+
 
     Differ.prototype.getTags = function (options) {
         var opts = {};
@@ -37,11 +54,23 @@
         });
     };
 
-    Differ.prototype.setTags = function (tag) {
+    // Differ.prototype.setTags = function (tag) {
+    //     return new Promise(function (fulfill, reject) {
+    //         differ.simpleGit.addAnnotatedTag(tag, '', (err, d) => {
+    //             if (err) return reject(err);
+    //             return fulfill(d);
+    //         });
+    //     });
+    // };
+
+    var getDiff = function (fromBranch, toBranch) {
         return new Promise(function (fulfill, reject) {
-            differ.simpleGit.addAnnotatedTag(tag, '', (err, d) => {
-                if (err) return reject(err);
-                return fulfill(d);
+            differ.simpleGit.diffSummary([fromBranch, toBranch, '--diff-filter=AM'], function (err, roger) {
+                if (err) {
+                    reject(err);
+                } else {
+                    fulfill(roger);
+                }
             });
         });
     };

@@ -1,9 +1,5 @@
-docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:package-a .
-
 docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211112-amber .
 docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211112-baryte .
-
 docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211112-cobalt-d .
-
-
 docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20211112-diamond .
+docker buildx build --platform linux/arm64,linux/amd64 --push -t fbairn/dxci:20220214-emerald-c .

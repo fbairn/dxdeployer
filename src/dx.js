@@ -1,5 +1,6 @@
 const fs = require('fs');
 const exec = require('child_process');
+const jetpack = require('fs-jetpack');
 
 const deployMetadata = function ({
     orgUsername,
@@ -62,7 +63,7 @@ const deployValidated = function ({
             const execData = JSON.parse(data);
             const { status, result } = JSON.parse(data);
             if (err) {
-                console.error(err);
+                console.error(JSON.stringify(err, null, 2));
                 return reject(execData.name & ' ' + execData.message);
             }
             if (status == 0) {
@@ -78,7 +79,7 @@ const deployValidated = function ({
                 }
             } else {
                 //Error
-                console.error('Failure ', err);
+                console.error('Failure ', JSON.stringify(err, null, 2));
                 return reject(err);
             }
             // console.info('Deployment Complete');
@@ -96,9 +97,11 @@ const checkData = (orgUsername, id, resolve, reject) => {
             return reject(err);
         }
         const { status, result, message } = JSON.parse(data);
+        jetpack.write('./temp/result.json', result);
         if (status == 0) {
             if (result.done) {
                 console.info('Deployment Result: ' + result.status);
+
                 if (result.status != 'Succeeded') {
                     return reject(result.status);
                 }
@@ -109,7 +112,7 @@ const checkData = (orgUsername, id, resolve, reject) => {
             }
         } else {
             //Error
-            console.log(result);
+            console.log('Deploy Error: ', result);
             if (result && result.details) {
                 if (result.details.componentFailures) {
                     result.details.componentFailures.forEach(element => {
@@ -121,6 +124,12 @@ const checkData = (orgUsername, id, resolve, reject) => {
                         console.error(element);
                     });
                 }
+                console.log(result.details.runTestResult?.codeCoverageWarnings);
+                // if (result.details.runTestResult && result.details.runTestResult.codeCoverageWarnings) {
+                // result.details?.runTestResult?.codeCoverageWarnings?.forEach(element => {
+                //     console.error(element);
+                // });
+                // }
             }
             console.error(`Failure\t${message}`);
             return reject(`Failure\t${message}`);
