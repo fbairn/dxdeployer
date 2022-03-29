@@ -1,4 +1,4 @@
-FROM salesforce/salesforcedx:7.137.1-full
+FROM salesforce/salesforcedx:7.143.0-full
 RUN export SFDX_AUTOUPDATE_DISABLE=false
 RUN export SFDX_DOMAIN_RETRY=300
 

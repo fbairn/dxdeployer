@@ -25,7 +25,9 @@ const exec = util.promisify(require('child_process').exec);
         console.log('gdiff', gdiff);
         if (gdiff.files.length === 0) return 0;
 
-        await filterMetaFiles(gdiff);
+        const metas = await filterMetaFiles(gdiff);
+        if (metas.length === 0) return 0;
+
         console.log('A', await exec('ls'));
         console.log('B', await exec('cd ./temp && ls'));
         await exec('cd ./temp && sfdx force:source:manifest:create --sourcepath ./force-app --manifestname ./package');

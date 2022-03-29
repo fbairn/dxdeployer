@@ -79,12 +79,12 @@ var buildDeploy = async () => {
         });
 
         let target = TARGET;
-        if(target.includes('origin/')==false){
+        if (target.includes('origin/') == false) {
             const tagList = await gitter.getTags({ match: TARGET });
             if (tagList.all.length == 0) {
                 throw 'The tag ' + TARGET + ' was not found.';
             }
-            target=tagList.latest;
+            target = tagList.latest;
         }
 
         const fileCount = await gitter.createPackageFromLocal(target, 'HEAD');
@@ -120,7 +120,7 @@ const rundeploy = async () => {
         const fileCount = await buildDeploy();
         if (fileCount == 0) {
             console.error('No files changed.');
-            process.exit(1);
+            process.exit(0);
         }
         if (VALIDATED) {
             await dx.deployValidated({ orgUsername: ORG_USERNAME });

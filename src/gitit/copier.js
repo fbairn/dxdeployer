@@ -20,6 +20,7 @@ let filterMetaFiles = async (gitDifData) => {
             }
         }
     });
+    return metas;
 };
 
 module.exports = {
