@@ -15,7 +15,7 @@ let filterMetaFiles = async (gitDifData) => {
             jetpack.copy(oldDir.replace('force-app', 'temp/force-holder'), oldDir.replace('force-app', 'temp/force-app'), { overwrite: true });
         } else {
             jetpack.copy(meta.file.replace('force-app', 'temp/force-holder'), meta.file.replace('force-app', 'temp/force-app'), { overwrite: true });
-            if (meta.file.endsWith('.cls') && meta.file.endsWith('-meta.xml') == false) {
+            if ((meta.file.endsWith('.cls') || meta.file.endsWith('.trigger')) && meta.file.endsWith('-meta.xml') == false) {
                 jetpack.copy(meta.file.replace('force-app', 'temp/force-holder') + '-meta.xml', meta.file.replace('force-app', 'temp/force-app') + '-meta.xml', { overwrite: true });
             }
         }
