@@ -1,4 +1,4 @@
-console.log('Deploy Version 20220214-emerald-c');
+console.log('Deploy Version 20220926-garnet-56');
 const fs = require('fs');
 const { readPackage } = require('./src/packger');
 

@@ -7,7 +7,6 @@ let filterMetaFiles = async (gitDifData) => {
     });
 
     metas.forEach(meta => {
-        console.log(meta);
         if (meta.file.includes('/lwc/') || meta.file.includes('/aura/')) {
             //Lightning
             const oldDir = meta.file.substr(0, meta.file.lastIndexOf('/'));

@@ -22,14 +22,12 @@ const exec = util.promisify(require('child_process').exec);
 
     Differ.prototype.createPackageFromLocal = async (fromBranch, toBranch) => {
         const gdiff = await getDiff(fromBranch, toBranch);
-        console.log('gdiff', gdiff);
+        // console.log('gdiff', gdiff);
         if (gdiff.files.length === 0) return 0;
 
         const metas = await filterMetaFiles(gdiff);
         if (metas.length === 0) return 0;
 
-        console.log('A', await exec('ls'));
-        console.log('B', await exec('cd ./temp && ls'));
         await exec('cd ./temp && sfdx force:source:manifest:create --sourcepath ./force-app --manifestname ./package');
         return gdiff.files.length;
     };

@@ -21,15 +21,19 @@ const deployMetadata = function ({
         const level = testLevel ? ' -l ' + testLevel : '';
         const checkString = check ? ' -c ' : '';
 
+        fs.readFile('./temp/package.xml', 'utf8', function (err, data) {
+            console.log(data);
+        });
+
         const deployCommand = 'cd ./temp && sfdx force:source:deploy -x ./package.xml -u ' + orgUsername + ' -w 0 --json ' + level + testString + checkString;
         console.log(deployCommand);
 
         //sfdx force:mdapi:deploy:report
 
         exec.exec(deployCommand, function (err, data) {
-            console.log('Deploy request', data);
             fs.writeFileSync('temp/deploydata.json', data);
             const execData = JSON.parse(data);
+            console.log('execData', execData);
             if (err) {
                 console.error(err);
                 return reject(execData.name);
@@ -39,7 +43,7 @@ const deployMetadata = function ({
                 setTimeout(() => checkData(orgUsername, execData.result.id, resolve, reject), 30000);
             } else {
                 //Error
-                console.error('Failure ', err);
+                console.error('D-Failure ', err);
                 return reject(err);
             }
             // console.info('Deployment Complete');
@@ -79,7 +83,7 @@ const deployValidated = function ({
                 }
             } else {
                 //Error
-                console.error('Failure ', JSON.stringify(err, null, 2));
+                console.error('V-Failure ', JSON.stringify(err, null, 2));
                 return reject(err);
             }
             // console.info('Deployment Complete');
@@ -96,20 +100,18 @@ const checkData = (orgUsername, id, resolve, reject) => {
             console.error('Major Failure', JSON.stringify(err));
             return reject(err);
         }
-        const { status, result, message } = JSON.parse(data);
+        const { result, message } = JSON.parse(data);
         jetpack.write('./temp/result.json', result);
-        if (status == 0) {
-            if (result.done) {
-                console.info('Deployment Result: ' + result.status);
+        if (result.done == false) {
+            console.info(`Deployment ${result.status}\tTests Completed: ${result.numberTestsCompleted}\tTest Errors: ${result.numberTestErrors}\tTotal Tests: ${result.numberTestsTotal}`);
+            setTimeout(() => checkData(orgUsername, result.id, resolve, reject), 10000);
+        } else if (result.done && result.success == true) {
+            console.info('Deployment Result: ' + result.status);
 
-                if (result.status != 'Succeeded') {
-                    return reject(result.status);
-                }
-                return resolve();
-            } else {
-                console.info(`Deployment ${result.status}\tTests Completed: ${result.numberTestsCompleted}\tTest Errors: ${result.numberTestErrors}\tTotal Tests: ${result.numberTestsTotal}`);
-                setTimeout(() => checkData(orgUsername, result.id, resolve, reject), 10000);
+            if (result.status != 'Succeeded') {
+                return reject(result.status);
             }
+            return resolve();
         } else {
             //Error
             console.log('Deploy Error: ', result);
@@ -131,7 +133,7 @@ const checkData = (orgUsername, id, resolve, reject) => {
                 // });
                 // }
             }
-            console.error(`Failure\t${message}`);
+            console.error(`C-Failure\t${message}`);
             return reject(`Failure\t${message}`);
         }
     });
